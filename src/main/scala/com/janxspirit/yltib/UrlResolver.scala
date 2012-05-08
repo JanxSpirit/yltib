@@ -19,7 +19,6 @@ class UrlResolver(poolSize: Int) {
 
   def resolveUrls(urls: List[String]) = {
     val futures = urls.map(url => {
-      println("--"+url)
       router.ask(ResolveUrl(url, 10))(30 seconds)
     })
 

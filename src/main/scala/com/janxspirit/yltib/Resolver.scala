@@ -15,26 +15,32 @@ class Resolver extends Actor {
   def resolveUrl(source: String, numLevels: Int): UrlResolutionMessage = {
 
     @tailrec
-    def resolveUrlInternal(source: String, locChain: List[String], curLevels: Int, numLevels: Int): List[String] = {
+    def resolveUrlInternal(source: String, 
+			   locChain: List[String], 
+			   curLevels: Int, 
+			   numLevels: Int): List[String] = {
       val url = new URL(source)
       val connection = url.openConnection(Proxy.NO_PROXY).asInstanceOf[HttpURLConnection]
       connection.setInstanceFollowRedirects(false)
       connection.connect()
-      if (connection.getResponseCode() >= 300 && connection.getResponseCode() < 400) {
-        //this is a redirect
-	val expandedUrl = connection.getHeaderField("Location")
-	println(expandedUrl)
-        connection.getInputStream().close()
-        if ((curLevels + 1) >= numLevels) {
-          //as far as we go
+      val expandedUrl = connection.getHeaderField("Location")
+      connection.getInputStream().close()
+
+      connection.getResponseCode match {
+	case c: Int if (c >=300 && c < 400 && (curLevels +1) >= numLevels) => {
+	  //as far as we go
           locChain :+ expandedUrl
-        } else {
-          resolveUrlInternal(expandedUrl, locChain :+ expandedUrl, curLevels + 1, numLevels)
-        }
-      } else if (connection.getResponseCode() == 200) {
-        locChain
-      } else throw new IllegalStateException("received response code %s from url %s"
-					     .format(connection.getResponseCode, source))
+	}
+	case c: Int if (c >=300 && c < 400) => {
+	  //this is a redirect
+	  resolveUrlInternal(expandedUrl, locChain :+ expandedUrl, curLevels + 1, numLevels)
+	}
+	case c: Int if (c == 200) => {
+	  locChain
+	}
+	case _ => throw new IllegalStateException("received response code %s from url %s"
+						  .format(connection.getResponseCode, source))
+      }
     }
 
     //it is probbaly more correct to use Akka's actor supervision than try/catch
