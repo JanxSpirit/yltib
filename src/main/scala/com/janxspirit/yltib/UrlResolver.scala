@@ -23,7 +23,7 @@ class UrlResolver(poolSize: Int) {
       router.ask(ResolveUrl(url, 10))(30 seconds)
     })
 
-    futures.par.map(fut => {
+    futures.map(fut => {
       Await.result(fut, 30 seconds)
     }).collect {
       case r: ResolvedUrl => (r.source -> r.resolved)
