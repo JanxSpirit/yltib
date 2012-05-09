@@ -6,6 +6,7 @@ import akka.dispatch.ExecutionContext
 import akka.pattern.ask
 import akka.routing.RoundRobinRouter
 import akka.util.duration._
+ 
 import java.util.concurrent.Executors
 
 class UrlResolver(poolSize: Int) {
