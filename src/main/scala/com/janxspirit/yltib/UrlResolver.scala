@@ -9,7 +9,7 @@ import akka.util.duration._
  
 import java.util.concurrent.Executors
 
-class UrlResolver(poolSize: Int) {
+class UrlResolver(poolSize: Int, linkResolveDepth: Int=3) {
   val ec = ExecutionContext.fromExecutorService(
     Executors.newCachedThreadPool()
   )
@@ -20,7 +20,7 @@ class UrlResolver(poolSize: Int) {
 
   def resolveUrls(urls: List[String]) = {
     val futures = urls.map(url => {
-      router.ask(ResolveUrl(url, 10))(30 seconds)
+      router.ask(ResolveUrl(url, linkResolveDepth))(30 seconds)
     })
 
     futures.map(fut => {
