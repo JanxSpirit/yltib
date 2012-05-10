@@ -24,7 +24,11 @@ class UrlResolver(poolSize: Int, linkResolveDepth: Int=3) {
     })
 
     futures.map(fut => {
-      Await.result(fut, 30 seconds)
+      try {
+	Await.result(fut, 30 seconds)
+      } catch {
+	case _ =>
+      }
     }).collect {
       case r: ResolvedUrl => (r.source -> r.resolved)
     }.toMap
